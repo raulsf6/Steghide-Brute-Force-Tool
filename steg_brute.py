@@ -16,13 +16,6 @@ class color:
     GREEN = '\033[1;32m'
 
     
-def check_file(file):
-    if os.path.exists(file):
-        return True
-    else:
-        return False
-
-    
 VERSION = "1.0"
 
 SAMPLES = """
