@@ -44,38 +44,30 @@ Command line examples:
 
 
 def Steg_brute(ifile, dicc):
-    i = 0
-    ofile = ifile.split('.')[0] + "_flag.txt"
-    nlines = len(open(dicc).readlines())
     with open(dicc, 'r') as passFile:
-        pbar = ProgressBar(widgets=[Percentage(), Bar()], maxval=nlines).start()
         for line in passFile.readlines():
-            password = line.strip('\n')
-            r = commands.getoutput("steghide extract -sf %s -p '%s' -xf %s" % (ifile, password, ofile))
-            if not "no pude extraer" in r and not "could not extract" in r:
-                print(color.GREEN + "\n\n " + r + color.ENDC)
-                print("\n\n [+] " + color.INFO + "Information obtained with password:" + color.GREEN + " %s\n" % password + color.ENDC)
-                if check_file(ofile):
-                    with open(ofile, 'r') as outfile:
-                        for line in outfile.readlines():
-                            print(line)
+            passwd = line.strip('\n')
+            if (steghide(ifile, passwd)):
                 break
-            pbar.update(i + 1)
-            i += 1
+
+def get_info(ifile, passwd, ofile):
+    # Execute steghide 
+    r = commands.getoutput("steghide extract -sf %s -p '%s' -xf %s -f" % (ifile, passwd, ofile))
+    if not "no pude extraer" in r and not "could not extract" in r:
+        return True
+    else:
+        return False
 
 
 def steghide(ifile, passwd):
+    # Output file name
     ofile = ifile.split('.')[0] + "_flag.txt"
-    r = commands.getoutput("steghide extract -sf %s -p '%s' -xf %s" % (ifile, passwd, ofile))
-    if not "no pude extraer" in r and not "could not extract" in r:
-        print(color.GREEN + "\n\n " + r + color.ENDC)
-        print("\n [+] " + color.INFO + "Information obtained: \n" + color.ENDC)
-        if check_file(ofile):
-            with open(ofile, 'r') as myfile:
-                for line in myfile.readlines():
-                    print(line)
+    if get_info(ifile, passwd, ofile):
+        print("\n\n [+] " + color.INFO + "Information obtained with password: " + color.GREEN + passwd + color.ENDC)
+        return True
     else:
-        print(color.FAIL + "\n\n " + r + color.ENDC)
+        print("\n\n [+] " + color.INFO  + "No info obtained with password: " + color.FAIL + passwd + color.ENDC)
+        return False
 
 
 def main():
@@ -103,7 +95,6 @@ def main():
                       help='Path of dictionary to brute force attack')
 
     args = argp.parse_args()
-    #print vars(args)
 
     if args.info and not args.extract and not args.brute:
         os.system("steghide info %s" % (args.file))
